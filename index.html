@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedback Form</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #6b8cff 0%, #7b6fd4 40%, #9b5fc0 70%, #b05aaa 100%);
+      background-attachment: fixed;
+    }
+
+    /* ── Card ──────────────────────────────────── */
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem 2.2rem 2.2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 24px 64px rgba(80, 50, 140, 0.28), 0 4px 16px rgba(0,0,0,0.12);
+      animation: slideUp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.35rem;
+    }
+    .card-sub {
+      font-size: 0.92rem;
+      color: #888;
+      font-weight: 300;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Form fields ───────────────────────────── */
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 0.45rem;
+    }
+    label .req { color: #e74c3c; margin-left: 2px; }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      color: #222;
+      background: #ffffff;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    input::placeholder, textarea::placeholder { color: #bbb; }
+
+    input:focus, textarea:focus {
+      border-color: #7b6fd4;
+      box-shadow: 0 0 0 3.5px rgba(123, 111, 212, 0.15);
+    }
+    input.error, textarea.error {
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.6;
+    }
+
+    /* ── Field error text ──────────────────────── */
+    .field-error {
+      display: none;
+      font-size: 0.78rem;
+      color: #e74c3c;
+      margin-top: 0.3rem;
+    }
+    .field-error.visible { display: block; }
+
+    /* ── Global error box ──────────────────────── */
+    #global-errors {
+      display: none;
+      background: #fff5f5;
+      border: 1px solid #fcc;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.84rem;
+      color: #c0392b;
+    }
+    #global-errors.visible { display: block; }
+    #global-errors ul { list-style: none; display: flex; flex-direction: column; gap: 0.2rem; }
+    #global-errors li::before { content: '• '; }
+
+    /* ── Submit button ─────────────────────────── */
+    .btn-submit {
+      width: 100%;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #6b8cff 0%, #9b5fc0 100%);
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(123, 111, 212, 0.4);
+    }
+    .btn-submit:hover  {
+      opacity: 0.92;
+      box-shadow: 0 6px 24px rgba(123, 111, 212, 0.55);
+      transform: translateY(-1px);
+    }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    .btn-submit.loading .btn-spinner { display: block; }
+    .btn-submit.loading .btn-label  { opacity: 0.7; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── View all link ─────────────────────────── */
+    .view-link {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+      color: #7b6fd4;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .view-link:hover { color: #5a4fc0; text-decoration: underline; }
+
+    /* ── Success state ─────────────────────────── */
+    #success-panel {
+      display: none;
+      text-align: center;
+      padding: 1.5rem 0.5rem 0.5rem;
+      animation: fadeIn 0.4s ease;
+    }
+    #success-panel.visible { display: block; }
+    @keyframes fadeIn {
+      from { opacity:0; transform: scale(0.95); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    .success-icon {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6b8cff, #9b5fc0);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.1rem;
+      font-size: 1.6rem;
+      box-shadow: 0 6px 20px rgba(123, 111, 212, 0.4);
+    }
+    #success-panel h2 { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.5rem; }
+    #success-panel p  { color: #888; font-size: 0.9rem; margin-bottom: 0.4rem; }
+    #success-panel .meta { font-size: 0.78rem; color: #bbb; }
+    .btn-reset {
+      margin-top: 1.4rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #7b6fd4;
+      background: none;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      padding: 0.55rem 1.4rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-reset:hover { border-color: #7b6fd4; }
+
+    /* ── Submissions panel ─────────────────────── */
+    #submissions-panel {
+      display: none;
+      margin-top: 1.5rem;
+      border-top: 1.5px solid #f0f0f0;
+      padding-top: 1.2rem;
+    }
+    #submissions-panel.visible { display: block; }
+    .subs-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+    .sub-item {
+      background: #f9f8ff;
+      border: 1px solid #ede8ff;
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.82rem;
+      color: #444;
+      line-height: 1.6;
+    }
+    .sub-item strong { color: #1a1a2e; }
+    .sub-empty { font-size: 0.85rem; color: #bbb; text-align: center; padding: 0.5rem 0; }
+
+    /* ── Toast ─────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.75rem; right: 1.75rem;
+      background: #fff;
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      min-width: 260px;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      font-size: 0.87rem;
+      color: #333;
+      transform: translateY(calc(100% + 2rem));
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      z-index: 999;
+      border-left: 4px solid #7b6fd4;
+    }
+    #toast.show   { transform: translateY(0); opacity: 1; }
+    #toast.err    { border-left-color: #e74c3c; }
+    #toast strong { display: block; margin-bottom: 0.2rem; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: #7b6fd4; }
+    #toast.err strong { color: #e74c3c; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+
+    <!-- Form view -->
+    <div id="form-view">
+      <h1 class="card-title">Feedback Form</h1>
+      <p class="card-sub">We'd love to hear your thoughts!</p>
+
+      <div id="global-errors"><ul id="error-list"></ul></div>
+
+      <form id="feedback-form" novalidate>
+
+        <div class="form-group">
+          <label for="name">Name <span class="req">*</span></label>
+          <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name" />
+          <span class="field-error" id="err-name"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email <span class="req">*</span></label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" />
+          <span class="field-error" id="err-email"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message <span class="req">*</span></label>
+          <textarea id="message" name="message" placeholder="Write your feedback here…"></textarea>
+          <span class="field-error" id="err-message"></span>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <div class="btn-spinner"></div>
+          <span class="btn-label">Submit Feedback</span>
+        </button>
+
+      </form>
+
+      <a href="#" class="view-link" id="view-link">View All Submissions</a>
+
+      <!-- Inline submissions list -->
+      <div id="submissions-panel">
+        <p class="subs-title">All Submissions</p>
+        <div id="submissions-list"></div>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div id="success-panel">
+      <div class="success-icon">✓</div>
+      <h2>Thank you!</h2>
+      <p id="success-msg">Your feedback has been received.</p>
+      <p class="meta" id="success-meta"></p>
+      <button class="btn-reset" id="reset-btn">Submit another response</button>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"><strong id="toast-title"></strong><span id="toast-body"></span></div>
+
+  <script>
+    const form         = document.getElementById('feedback-form');
+    const submitBtn    = document.getElementById('submit-btn');
+    const globalErrors = document.getElementById('global-errors');
+    const errorList    = document.getElementById('error-list');
+    const successPanel = document.getElementById('success-panel');
+    const formView     = document.getElementById('form-view');
+    const successMsg   = document.getElementById('success-msg');
+    const successMeta  = document.getElementById('success-meta');
+    const resetBtn     = document.getElementById('reset-btn');
+    const viewLink     = document.getElementById('view-link');
+    const subPanel     = document.getElementById('submissions-panel');
+    const subList      = document.getElementById('submissions-list');
+    const toast        = document.getElementById('toast');
+    let toastTimer, subsVisible = false;
+
+    function showToast(type, title, body) {
+      clearTimeout(toastTimer);
+      toast.className = `show ${type === 'error' ? 'err' : ''}`;
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-body').textContent  = body;
+      toastTimer = setTimeout(() => toast.className = '', 4500);
+    }
+
+    function setFieldError(field, msg) {
+      const el  = document.getElementById(field);
+      const err = document.getElementById(`err-${field}`);
+      if (el)  el.classList.add('error');
+      if (err) { err.textContent = msg; err.classList.add('visible'); }
+    }
+
+    function clearErrors() {
+      ['name','email','message'].forEach(f => {
+        const el  = document.getElementById(f);
+        const err = document.getElementById(`err-${f}`);
+        if (el)  el.classList.remove('error');
+        if (err) { err.textContent = ''; err.classList.remove('visible'); }
+      });
+      globalErrors.classList.remove('visible');
+      errorList.innerHTML = '';
+    }
+
+    resetBtn.addEventListener('click', () => {
+      form.reset();
+      clearErrors();
+      successPanel.classList.remove('visible');
+      formView.style.display = '';
+    });
+
+    viewLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (subsVisible) {
+        subPanel.classList.remove('visible');
+        subsVisible = false;
+        viewLink.textContent = 'View All Submissions';
+        return;
+      }
+      try {
+        const res  = await fetch('/feedback');
+        const data = await res.json();
+        subList.innerHTML = '';
+        if (!data.data.length) {
+          subList.innerHTML = '<p class="sub-empty">No submissions yet.</p>';
+        } else {
+          data.data.forEach(s => {
+            const d = document.createElement('div');
+            d.className = 'sub-item';
+            d.innerHTML = `
+              <strong>#${s.id} — ${s.name}</strong><br/>
+              ${s.email} · ${new Date(s.timestamp).toLocaleString()}<br/>
+              <span style="color:#666">${s.message.substring(0,80)}${s.message.length > 80 ? '…' : ''}</span>`;
+            subList.appendChild(d);
+          });
+        }
+        subPanel.classList.add('visible');
+        subsVisible = true;
+        viewLink.textContent = 'Hide Submissions';
+      } catch {
+        showToast('error', 'Error', 'Could not load submissions.');
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const body = {
+        name:    document.getElementById('name').value,
+        email:   document.getElementById('email').value,
+        message: document.getElementById('message').value,
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+
+      try {
+        const res  = await fetch('/feedback', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (res.status === 201) {
+          const ts = new Date(data.data.timestamp).toLocaleString();
+          successMsg.textContent  = data.message;
+          successMeta.textContent = `Submission #${data.data.id} · ${ts}`;
+          formView.style.display  = 'none';
+          successPanel.classList.add('visible');
+          showToast('success', 'Submitted!', data.message);
+        } else if (res.status === 400) {
+          data.errors.forEach(err => {
+            setFieldError(err.field, err.message);
+            const li = document.createElement('li');
+            li.textContent = err.message;
+            errorList.appendChild(li);
+          });
+          globalErrors.classList.add('visible');
+          showToast('error', '400 Bad Request', `${data.errors.length} error(s) found.`);
+        }
+      } catch {
+        showToast('error', 'Network Error', 'Server unreachable. Is it running?');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+      }
+    });
+  </script>
+</body>
+</html>
